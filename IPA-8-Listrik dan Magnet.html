@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>Kuis IPA SMP Listrik dan Magnet</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 30px;
+    }
+    .question {
+      margin-bottom: 20px;
+    }
+    .hidden {
+      display: none;
+    }
+    input[type="text"] {
+      width: 300px;
+      margin-bottom: 10px;
+      display: block;
+    }
+    #timer {
+      font-weight: bold;
+      color: red;
+      margin-bottom: 20px;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>Kuis IPA SMP</h2>
+  <h2>By: Torus Manuntun Nababan, M.Pd</h2>
+  <h2>Materi: Listrik dan Magnet</h2>
+  <!-- Form Identitas -->
+  <div id="identityForm">
+    <h3>Silakan isi identitas terlebih dahulu:</h3>
+    <label>Nama:
+      <input type="text" id="nama" required>
+    </label>
+    <label>Kelas:
+      <input type="text" id="kelas" required>
+    </label>
+    <label>Tahun Ajaran:
+      <input type="text" id="tahun" required>
+    </label>
+    <label>Nama Sekolah:
+      <input type="text" id="sekolah" required>
+    </label>
+    <button onclick="startQuiz()">Mulai Kuis</button>
+  </div>
+
+  <!-- Timer -->
+  <div id="timer" class="hidden"></div>
+
+  <!-- Form Soal -->
+  <form id="quizForm" class="hidden">
+    <div id="questionsContainer"></div>
+    <button type="button" onclick="submitQuiz()">Selesai dan Lihat Skor</button>
+  </form>
+
+  <div id="result" class="hidden"></div>
+
+  <script>
+    const questions = [
+      { question: "1. Arus listrik mengalir dari...", options: ["Kutub negatif ke kutub negatif", "Kutub positif ke kutub positif", "Kutub positif ke kutub negatif", "Kutub negatif ke kutub positif"], answer: "Kutub negatif ke kutub positif" },
+    { question: "2. Alat untuk mengukur kuat arus listrik adalah...", options: ["Voltmeter", "Amperemeter", "Ohmmeter", "Wattmeter"], answer: "Amperemeter" },
+    { question: "3. Satuan kuat arus listrik dalam SI adalah...", options: ["Volt", "Ohm", "Ampere", "Watt"], answer: "Ampere" },
+    { question: "4. Alat yang digunakan untuk mengukur tegangan listrik adalah...", options: ["Amperemeter", "Voltmeter", "Ohmmeter", "Kompas"], answer: "Voltmeter" },
+    { question: "5. Satuan hambatan listrik adalah...", options: ["Ampere", "Volt", "Ohm", "Watt"], answer: "Ohm" },
+    { question: "6. Alat pengaman listrik yang bekerja berdasarkan prinsip kemagnetan adalah...", options: ["MCB", "Stop kontak", "Sakelar", "Terminal"], answer: "MCB" },
+    { question: "7. Besarnya tegangan sebanding dengan kuat arus jika hambatannya tetap. Ini adalah bunyi hukum...", options: ["Newton", "Ohm", "Faraday", "Kirchhoff"], answer: "Ohm" },
+    { question: "8. Arus listrik dapat mengalir dalam suatu rangkaian jika...", options: ["Sumber listrik habis", "Rangkaian terbuka", "Rangkaian tertutup", "Saklar dalam posisi off"], answer: "Rangkaian tertutup" },
+    { question: "9. Magnet yang dibuat dengan cara mengalirkan arus listrik ke kawat penghantar disebut...", options: ["Magnet buatan", "Magnet alam", "Elektromagnet", "Magnet tetap"], answer: "Elektromagnet" },
+    { question: "10. Alat yang bekerja berdasarkan elektromagnetik adalah...", options: ["Kompas", "Televisi", "Bel listrik", "Termometer"], answer: "Bel listrik" },
+    { question: "11. Bahan berikut yang tidak dapat ditarik magnet adalah...", options: ["Besi", "Baja", "Aluminium", "Nikel"], answer: "Aluminium" },
+    { question: "12. Kutub magnet yang senama jika didekatkan akan...", options: ["Tarik menarik", "Tolak menolak", "Netral", "Tidak bereaksi"], answer: "Tolak menolak" },
+    { question: "13. Benda yang dapat dibuat menjadi magnet tetap adalah...", options: ["Besi lunak", "Baja", "Tembaga", "Aluminium"], answer: "Baja" },
+    { question: "14. Magnet alam terdapat pada batuan yang disebut...", options: ["Magnetit", "Granit", "Marmer", "Basalt"], answer: "Magnetit" },
+    { question: "15. Peralatan rumah tangga yang menggunakan prinsip elektromagnet adalah...", options: ["Kipas angin", "Kompor gas", "Sapu", "Tungku tanah"], answer: "Kipas angin" },
+    { question: "16. Kompas bekerja berdasarkan prinsip...", options: ["Listrik", "Cahaya", "Gaya gesek", "Magnet"], answer: "Magnet" },
+    { question: "17. Generator mengubah energi gerak menjadi...", options: ["Energi cahaya", "Energi kimia", "Energi listrik", "Energi panas"], answer: "Energi listrik" },
+    { question: "18. Transformator (trafo) digunakan untuk...", options: ["Mengubah arus menjadi tegangan", "Mengalirkan air", "Menurunkan atau menaikkan tegangan listrik", "Menghasilkan cahaya"], answer: "Menurunkan atau menaikkan tegangan listrik" },
+    { question: "19. Benda yang tidak menghantarkan listrik disebut...", options: ["Isolator", "Konduktor", "Elektromagnet", "Superkonduktor"], answer: "Isolator" },
+    { question: "20. Kawat tembaga banyak digunakan sebagai penghantar listrik karena...", options: ["Ringan", "Kuat", "Murah", "Menghantarkan listrik dengan baik"], answer: "Menghantarkan listrik dengan baik" }
+  ];
+
+    let quizTimer;
+    let countdownInterval;
+    const timeLimit = 20 * 60 * 1000; // 20 menit
+
+    function startQuiz() {
+      const nama = document.getElementById('nama').value;
+      const kelas = document.getElementById('kelas').value;
+      const tahun = document.getElementById('tahun').value;
+      const sekolah = document.getElementById('sekolah').value;
+
+      if (!nama || !kelas || !tahun || !sekolah) {
+        alert("Harap lengkapi semua data identitas.");
+        return;
+      }
+
+      document.getElementById('identityForm').classList.add('hidden');
+      document.getElementById('quizForm').classList.remove('hidden');
+      document.getElementById('timer').classList.remove('hidden');
+
+      const container = document.getElementById('questionsContainer');
+      container.innerHTML = "";
+      questions.forEach((q, index) => {
+        const div = document.createElement('div');
+        div.classList.add('question');
+        div.innerHTML = `<p>${q.question}</p>` + q.options.map(opt => `
+          <label><input type="radio" name="q${index}" value="${opt}"> ${opt}</label><br>`).join('');
+        container.appendChild(div);
+      });
+
+      // Timer otomatis submit setelah 20 menit
+      quizTimer = setTimeout(() => {
+        alert("Waktu habis! Kuis akan otomatis disubmit.");
+        submitQuiz();
+      }, timeLimit);
+
+      // Countdown display
+      let remaining = timeLimit / 1000;
+      const timerDisplay = document.getElementById('timer');
+      timerDisplay.textContent = `Sisa waktu: ${remaining} detik`;
+      countdownInterval = setInterval(() => {
+        remaining--;
+        timerDisplay.textContent = `Sisa waktu: ${remaining} detik`;
+        if (remaining <= 0) {
+          clearInterval(countdownInterval);
+        }
+      }, 1000);
+    }
+
+    function submitQuiz() {
+      clearTimeout(quizTimer);
+      clearInterval(countdownInterval);
+
+      let score = 0;
+      questions.forEach((q, index) => {
+        const selected = document.querySelector(`input[name="q${index}"]:checked`);
+        if (selected && selected.value === q.answer) {
+          score += 10;
+        }
+      });
+
+      document.getElementById('quizForm').classList.add('hidden');
+      document.getElementById('timer').classList.add('hidden');
+      const resultDiv = document.getElementById('result');
+      resultDiv.classList.remove('hidden');
+
+      const nama = document.getElementById('nama').value;
+      const kelas = document.getElementById('kelas').value;
+      const tahun = document.getElementById('tahun').value;
+      const sekolah = document.getElementById('sekolah').value;
+
+      let message = "";
+      if (score >= 70) {
+        message = "<p style='color: green;'><strong>Selamat!</strong> Anda Sudah Bisa Melanjutkan ke Materi Berikutnya.</p>";
+      } else {
+        message = "<p style='color: red;'><strong>Mohon maaf.</strong> Silakan pelajari kembali materi ini sebelum melanjutkan ke materi berikutnya.</p>";
+      }
+
+      resultDiv.innerHTML = `
+        <h3>Hasil Kuis</h3>
+        <p><strong>Nama:</strong> ${nama}</p>
+        <p><strong>Kelas:</strong> ${kelas}</p>
+        <p><strong>Tahun Ajaran:</strong> ${tahun}</p>
+        <p><strong>Sekolah:</strong> ${sekolah}</p>
+        <p><strong>Skor Anda:</strong> ${score} dari 200</p>
+        ${message}
+      `;
+    }
+  </script>
+</body>
+</html>
